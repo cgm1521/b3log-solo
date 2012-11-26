@@ -67,22 +67,22 @@
     <a href="https://github.com/b3log/b3log-solo" target="_blank" class="hover">
         B3log Solo
     </a>
-    &nbsp;${onlineVisitor1Label}${onlineVisitorCnt}
+    <span class="left">&nbsp;${onlineVisitor1Label}${onlineVisitorCnt}</span>
     <span class="right" id="admin">
         <#if isLoggedIn>
         <span>${userName}</span>
-        <#if isAdmin>
-        <a href="javascript:Util.clearCache('all');">
-            ${clearAllCacheLabel}
-        </a>
-        <a href="javascript:Util.clearCache();">
-            ${clearCacheLabel}
-        </a>
-        <a href="${contextPath}/admin-index.do#main" title="${adminLabel}">
-            ${adminLabel}
-        </a>
-        <a href="${logoutURL}" title="${logoutLabel}">${logoutLabel}</a>
-        </#if>
+            <#if isAdmin>
+                <a href="javascript:Util.clearCache('all');">
+                ${clearAllCacheLabel}
+                </a>
+                <a href="javascript:Util.clearCache();">
+                ${clearCacheLabel}
+                </a>
+            </#if>
+                <a href="${contextPath}/admin-index.do#main" title="${adminLabel}">
+                ${adminLabel}
+                </a>
+                <a href="${logoutURL}" title="${logoutLabel}">${logoutLabel}</a>
         <#else>
         <a href="${loginURL}" title="${loginLabel}">${loginLabel}</a>
         </#if>

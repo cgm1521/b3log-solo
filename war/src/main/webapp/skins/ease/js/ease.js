@@ -18,7 +18,7 @@
  * @fileoverview ease js.
  *
  * @author <a href="mailto:LLY219@gmail.com">Liyuan Li</a>
- * @version 1.0.1.1, Jun 18, 2012
+ * @version 1.0.1.4, Aug 29, 2012
  */
 var goTranslate = function () {
     window.open("http://translate.google.com/translate?sl=auto&tl=auto&u=" + location.href);  
@@ -39,7 +39,7 @@ var getNextPage = function () {
     }
     
     $.ajax({
-        url: latkeConfig.staticServePath + path + currentPage,
+        url: latkeConfig.servePath + path + currentPage,
         type: "GET",
         beforeSend: function () {
             $more.css("background",
@@ -55,9 +55,13 @@ var getNextPage = function () {
             
             // append articles
             for (var i = 0; i < result.rslts.articles.length; i++) {
-                var article = result.rslts.articles[i];
+                var article = result.rslts.articles[i],
+                lastClass = "";
+                if (result.rslts.articles.length - 1 === i) {
+                    lastClass = " article-last";
+                }
                 
-                articlesHTML += '<li class="article">' + 
+                articlesHTML += '<li class="article' + lastClass + '">' + 
                 '<div class="article-title">' +
                 '<h2>' +
                 '<a rel="bookmark" class="ft-gray" href="' + latkeConfig.servePath + article.articlePermalink + '">' +
@@ -88,7 +92,6 @@ var getNextPage = function () {
                 '</div>' +
                 '<div id="content' + article.oId + '" class="none"></div>' +
                 '</div>' +
-                '<div class="article-info">' +
                 '<div class="right ft-gray">';
                 if (article.hasUpdated) {
                     articlesHTML += Util.toDate(article.articleUpdateDate, 'yy-MM-dd HH:mm');
@@ -113,11 +116,11 @@ var getNextPage = function () {
                 
                 articlesHTML += '</div>' +
             '<div class="clear"></div>' +
-            '</div>' +
             '</li>';
             }
-        
-            $(".body>ul").append(articlesHTML);
+            
+            $(".article-last").removeClass("article-last");
+            $(".main>.wrapper>ul").append(articlesHTML);
             
             // 最后一页处理
             if (pagination.paginationPageCount === currentPage) {
@@ -131,8 +134,8 @@ var getNextPage = function () {
 
 var ease = {
     $header: $(".header"),
-    headerH: $(".header").height(),
-    $body: $(".body"),
+    headerH: 103,
+    $body: $(".main > .wrapper"),
     $nav: $(".nav"),
     getCurrentPage: function () {
         var $next = $(".article-next");
@@ -164,6 +167,7 @@ var ease = {
             return;
         }
         
+        $(".footer").css("marginTop", "30px");
         var years = [],
         $archiveList = $archives.find("span").each(function () {
             var year = $(this).data("year"),
@@ -206,7 +210,7 @@ var ease = {
                     break;
                 }
                 
-                $items[m].style.left = (n * 318) + "px";
+                $items[m].style.left = (n * 310) + "px";
                 
                 if (line > 0) {
                     if ($items[m - 3].style.top !== "") {
@@ -233,12 +237,16 @@ var ease = {
     scrollEvent: function () {
         var _it = this;
         $(window).scroll(function () {
-            var y = $(window).scrollTop();
+            var y = $(window).scrollTop(),
+            topH = 0;
+            if ($("#top").css("display") === "block") {
+                topH = $("#top").height();
+            }
         
             // header event
-            if (y >= _it.headerH + $("#top").height()) {
+            if (y >= _it.headerH + topH) {
                 _it.$nav.css("position", "fixed");
-                _it.$body.css("marginTop", "58px");
+                _it.$body.css("marginTop", "55px");
             } else {
                 _it.$nav.css("position" ,"inherit");
                 _it.$body.css("marginTop", "0");

@@ -25,22 +25,23 @@ import javax.servlet.http.HttpSessionEvent;
 import org.b3log.latke.Keys;
 import org.b3log.latke.event.EventManager;
 import org.b3log.latke.plugin.PluginManager;
+import org.b3log.latke.plugin.ViewLoadEventHandler;
+import org.b3log.latke.repository.RepositoryException;
 import org.b3log.latke.repository.Transaction;
 import org.b3log.latke.servlet.AbstractServletListener;
+import org.b3log.latke.util.Requests;
+import org.b3log.latke.util.Stopwatchs;
+import org.b3log.latke.util.Strings;
+import org.b3log.latke.util.freemarker.Templates;
 import org.b3log.solo.event.comment.ArticleCommentReplyNotifier;
 import org.b3log.solo.event.comment.PageCommentReplyNotifier;
 import org.b3log.solo.event.ping.AddArticleGoogleBlogSearchPinger;
 import org.b3log.solo.event.ping.UpdateArticleGoogleBlogSearchPinger;
-import org.b3log.solo.event.rhythm.ArticleSender;
-import org.b3log.solo.model.Preference;
-import org.b3log.latke.plugin.ViewLoadEventHandler;
-import org.b3log.latke.repository.RepositoryException;
-import org.b3log.latke.util.Stopwatchs;
-import org.b3log.latke.util.Strings;
 import org.b3log.solo.event.plugin.PluginRefresher;
+import org.b3log.solo.event.rhythm.ArticleSender;
+import org.b3log.solo.event.symphony.CommentSender;
+import org.b3log.solo.model.Preference;
 import org.b3log.solo.model.Skin;
-import org.b3log.latke.util.Requests;
-import org.b3log.latke.util.freemarker.Templates;
 import org.b3log.solo.repository.PreferenceRepository;
 import org.b3log.solo.repository.impl.PreferenceRepositoryImpl;
 import org.b3log.solo.repository.impl.UserRepositoryImpl;
@@ -52,7 +53,7 @@ import org.json.JSONObject;
  * B3log Solo servlet listener.
  *
  * @author <a href="mailto:DL88250@gmail.com">Liang Ding</a>
- * @version 1.0.7.4, Jun 2, 2011
+ * @version 1.0.7.6, Nov 21, 2012
  * @since 0.3.1
  */
 public final class SoloServletListener extends AbstractServletListener {
@@ -60,7 +61,7 @@ public final class SoloServletListener extends AbstractServletListener {
     /**
      * B3log Solo version.
      */
-    public static final String VERSION = "0.4.6";
+    public static final String VERSION = "0.5.5";
     /**
      * Logger.
      */
@@ -69,10 +70,6 @@ public final class SoloServletListener extends AbstractServletListener {
      * JSONO print indent factor.
      */
     public static final int JSON_PRINT_INDENT_FACTOR = 4;
-    /**
-     * B3log Rhythm address.
-     */
-    public static final String B3LOG_RHYTHM_ADDRESS = "http://rhythm.b3log.org:80";
     /**
      * Enter escape.
      */
@@ -237,9 +234,11 @@ public final class SoloServletListener extends AbstractServletListener {
             eventManager.registerListener(new PageCommentReplyNotifier());
             eventManager.registerListener(new AddArticleGoogleBlogSearchPinger());
             eventManager.registerListener(new UpdateArticleGoogleBlogSearchPinger());
-            eventManager.registerListener(new ArticleSender());
             eventManager.registerListener(new PluginRefresher());
             eventManager.registerListener(new ViewLoadEventHandler());
+            // Sync
+            eventManager.registerListener(new ArticleSender());
+            eventManager.registerListener(new CommentSender());
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Register event processors error", e);
             throw new IllegalStateException(e);

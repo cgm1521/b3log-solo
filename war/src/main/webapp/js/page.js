@@ -18,7 +18,7 @@
  *
  * @author <a href="mailto:LLY219@gmail.com">Liyuan Li</a>
  * @author <a href="mailto:DL88250@gmail.com">Liang Ding</a>
- * @version 1.0.3.0, May 22, 2012
+ * @version 1.0.3.1, Jul 5, 2012
  */
 var Page = function (tips) {
     this.currentCommentId = "";
@@ -391,19 +391,22 @@ $.extend(Page.prototype, {
         var $top = $("#top #admin");
         if ($top.length === 1) {
             if ($top.find("a").length > 2) {
-                if (Cookie.readCookie("commentName") === "") {
-                    Cookie.createCookie("commentName", $top.find("span").text(), 365); 
-                }
-
-                if (Cookie.readCookie("commentURL") === "") {
-                    Cookie.createCookie("commentURL", window.location.host, 365);
-                }
+                Cookie.createCookie("commentName", $top.find("span").text(), 365); 
+                Cookie.createCookie("commentURL", window.location.host, 365);
             }
         }
         
         $("#commentEmail").val(Cookie.readCookie("commentEmail"));
         $("#commentURL").val(Cookie.readCookie("commentURL"));
         $("#commentName").val(Cookie.readCookie("commentName"));
+        
+        // if no JSON, add it.
+        try {
+            JSON
+        } catch (e) {
+            document.write("<script src=\"" + latkeConfig.staticServePath + "/js/lib/json2.js\"><\/script>");
+        }
+            
     },
 
     /*
@@ -414,11 +417,11 @@ $.extend(Page.prototype, {
         var randomArticles1Label = this.tips.randomArticles1Label;
         // getRandomArticles
         $.ajax({
-            url: latkeConfig.staticServePath + "/get-random-articles.do",
+            url: latkeConfig.servePath + "/get-random-articles.do",
             type: "POST",
             success: function(result, textStatus){
                 var randomArticles = result.randomArticles;
-                if (0 === randomArticles.length) {
+                if (!randomArticles || 0 === randomArticles.length) {
                     $("#randomArticles").remove();
                     return;
                 }
@@ -428,7 +431,7 @@ $.extend(Page.prototype, {
                     var article = randomArticles[i];
                     var title = article.articleTitle;
                     var randomArticleLiHtml = "<li>" + "<a rel='nofollow' title='" + title + "' href='" + 
-                        article.articlePermalink +"'>" +  title + "</a></li>";
+                    article.articlePermalink +"'>" +  title + "</a></li>";
                     listHtml += randomArticleLiHtml;
                 }
                 
@@ -446,11 +449,11 @@ $.extend(Page.prototype, {
      */
     loadRelevantArticles: function (id, headTitle) {
         $.ajax({
-            url: latkeConfig.staticServePath + "/article/id/" + id + "/relevant/articles",
+            url: latkeConfig.servePath + "/article/id/" + id + "/relevant/articles",
             type: "GET",
             success: function(data, textStatus){
                 var articles = data.relevantArticles;
-                if (0 === articles.length) {
+                if (!articles || 0 === articles.length) {
                     $("#relevantArticles").remove();
                     return;
                 }
@@ -494,7 +497,7 @@ $.extend(Page.prototype, {
                 },
                 success: function(data, textStatus){
                     var articles = data.articles;
-                    if (0 === articles.length) {
+                    if (!articles || 0 === articles.length) {
                         $("#externalRelevantArticles").remove();
                         return;
                     }

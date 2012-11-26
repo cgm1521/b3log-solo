@@ -15,22 +15,24 @@
  */
 package org.b3log.solo.processor;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.b3log.latke.Latkes;
-import org.b3log.latke.RuntimeEnv;
-import org.b3log.latke.action.AbstractCacheablePageAction;
-import org.b3log.latke.annotation.RequestProcessing;
-import org.b3log.latke.annotation.RequestProcessor;
 import org.b3log.latke.cache.PageCaches;
 import org.b3log.latke.repository.RepositoryException;
 import org.b3log.latke.repository.Transaction;
 import org.b3log.latke.service.LangPropsService;
 import org.b3log.latke.servlet.HTTPRequestContext;
 import org.b3log.latke.servlet.HTTPRequestMethod;
+import org.b3log.latke.servlet.annotation.RequestProcessing;
+import org.b3log.latke.servlet.annotation.RequestProcessor;
 import org.b3log.latke.servlet.renderer.DoNothingRenderer;
+import org.b3log.latke.util.CollectionUtils;
 import org.b3log.solo.model.Article;
 import org.b3log.solo.model.PageTypes;
 import org.b3log.solo.model.Statistic;
@@ -54,7 +56,7 @@ import org.json.JSONObject;
  * <p>
  *
  * @author <a href="mailto:DL88250@gmail.com">Liang Ding</a>
- * @version 1.0.1.5, May 31, 2012
+ * @version 1.0.1.7, Jul 24, 2012
  * @since 0.4.0
  */
 @RequestProcessor
@@ -76,6 +78,10 @@ public final class StatProcessor {
      * Language service.
      */
     private LangPropsService langPropsService = LangPropsService.getInstance();
+    /**
+     * Flush size.
+     */
+    private static final int FLUSH_SIZE = 30;
 
     /**
      * Online visitor count refresher.
@@ -84,8 +90,6 @@ public final class StatProcessor {
      */
     @RequestProcessing(value = "/console/stat/onlineVisitorRefresh", method = HTTPRequestMethod.GET)
     public void onlineVisitorCountRefresher(final HTTPRequestContext context) {
-        LOGGER.log(Level.INFO, "Refreshes online visitor count");
-
         context.setRenderer(new DoNothingRenderer());
 
         Statistics.removeExpiredOnlineVisitor();
@@ -115,9 +119,19 @@ public final class StatProcessor {
         try {
             // For blog view counter
             statisticRepository.update(Statistic.STATISTIC, statistic);
-
+            
             // For article view counter
-            final Set<String> cachedPageKeys = PageCaches.getKeys();
+            final Set<String> keys = PageCaches.getKeys();
+            final List<String> keyList = new ArrayList<String>(keys);
+
+            final int size = keys.size() > FLUSH_SIZE ? FLUSH_SIZE : keys.size(); // Flush FLUSH_SIZE articles at most
+            final List<Integer> idx = CollectionUtils.getRandomIntegers(0, keys.size(), size);
+
+            final Set<String> cachedPageKeys = new HashSet<String>();
+            for (final Integer i : idx) {
+                cachedPageKeys.add(keyList.get(i));
+            }
+
             for (final String cachedPageKey : cachedPageKeys) {
                 final JSONObject cachedPage = PageCaches.get(cachedPageKey);
                 if (null == cachedPage) {
@@ -125,18 +139,13 @@ public final class StatProcessor {
                 }
 
                 final Map<String, String> langs = langPropsService.getAll(Latkes.getLocale());
-                if (!cachedPage.optString(AbstractCacheablePageAction.CACHED_TYPE).
-                        equals(langs.get(PageTypes.ARTICLE))) { // Cached is not an article page
+                if (!cachedPage.optString(PageCaches.CACHED_TYPE).
+                        equals(langs.get(PageTypes.ARTICLE.getLangeLabel()))) { // Cached is not an article page
                     continue;
                 }
 
                 final int hitCount = cachedPage.optInt(PageCaches.CACHED_HIT_COUNT);
-                if (2 > hitCount && RuntimeEnv.GAE == Latkes.getRuntimeEnv()) {
-                    // Skips for view count tiny-changes, reduces Datastore Write Quota for Solo GAE version
-                    continue;
-                }
-
-                final String articleId = cachedPage.optString(AbstractCacheablePageAction.CACHED_OID);
+                final String articleId = cachedPage.optString(PageCaches.CACHED_OID);
 
                 final JSONObject article = articleRepository.get(articleId);
                 if (null == article) {
@@ -144,7 +153,7 @@ public final class StatProcessor {
                 }
 
                 LOGGER.log(Level.FINER, "Updating article[id={0}, title={1}] view count",
-                           new Object[]{articleId, cachedPage.optString(AbstractCacheablePageAction.CACHED_TITLE)});
+                           new Object[]{articleId, cachedPage.optString(PageCaches.CACHED_TITLE)});
 
                 final int oldViewCount = article.optInt(Article.ARTICLE_VIEW_COUNT);
                 final int viewCount = oldViewCount + hitCount;
@@ -152,7 +161,7 @@ public final class StatProcessor {
                 article.put(Article.ARTICLE_VIEW_COUNT, viewCount);
 
                 article.put(Article.ARTICLE_RANDOM_DOUBLE, Math.random()); // Updates random value
-                
+
                 articleRepository.update(articleId, article);
 
                 cachedPage.put(PageCaches.CACHED_HIT_COUNT, 0);

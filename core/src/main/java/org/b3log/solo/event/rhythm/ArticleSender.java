@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.b3log.latke.Keys;
+import org.b3log.latke.Latkes;
 import org.b3log.latke.event.AbstractEventListener;
 import org.b3log.latke.event.Event;
 import org.b3log.latke.event.EventException;
@@ -40,7 +41,7 @@ import org.json.JSONObject;
  * This listener is responsible for sending article to B3log Rhythm.
  * 
  * @author <a href="mailto:DL88250@gmail.com">Liang Ding</a>
- * @version 1.0.1.9, May 4, 2012
+ * @version 1.0.2.3, Nov 19, 2012
  * @since 0.3.1
  */
 public final class ArticleSender extends AbstractEventListener<JSONObject> {
@@ -58,13 +59,17 @@ public final class ArticleSender extends AbstractEventListener<JSONObject> {
      */
     private PreferenceQueryService preferenceQueryService = PreferenceQueryService.getInstance();
     /**
+     * B3log Rhythm address.
+     */
+    public static final String B3LOG_RHYTHM_ADDRESS = "http://rhythm.b3log.org:80";
+    /**
      * URL of adding article to Rhythm.
      */
     private static final URL ADD_ARTICLE_URL;
 
     static {
         try {
-            ADD_ARTICLE_URL = new URL(SoloServletListener.B3LOG_RHYTHM_ADDRESS + "/add-article.do");
+            ADD_ARTICLE_URL = new URL(B3LOG_RHYTHM_ADDRESS + "/add-article.do");
         } catch (final MalformedURLException e) {
             LOGGER.log(Level.SEVERE, "Creates remote service address[rhythm add article] error!");
             throw new IllegalStateException(e);
@@ -92,7 +97,7 @@ public final class ArticleSender extends AbstractEventListener<JSONObject> {
             final String blogHost = preference.getString(Preference.BLOG_HOST).toLowerCase();
             if (blogHost.contains("localhost")) {
                 LOGGER.log(Level.INFO, "Blog Solo runs on local server, so should not send this article[id={0}, title={1}] to Rhythm",
-                           new Object[]{originalArticle.getString(Keys.OBJECT_ID), originalArticle.getString(Article.ARTICLE_TITLE)});
+                        new Object[]{originalArticle.getString(Keys.OBJECT_ID), originalArticle.getString(Article.ARTICLE_TITLE)});
                 return;
             }
 
@@ -118,6 +123,10 @@ public final class ArticleSender extends AbstractEventListener<JSONObject> {
             requestJSONObject.put(Common.BLOG, "B3log Solo");
             requestJSONObject.put(Preference.BLOG_TITLE, preference.getString(Preference.BLOG_TITLE));
             requestJSONObject.put(Preference.BLOG_HOST, blogHost);
+            requestJSONObject.put("userB3Key", preference.optString(Preference.KEY_OF_SOLO));
+            requestJSONObject.put("clientAdminEmail", preference.optString(Preference.ADMIN_EMAIL));
+            requestJSONObject.put("clientRuntimeEnv", Latkes.getRuntimeEnv().name());
+
             httpRequest.setPayload(requestJSONObject.toString().getBytes("UTF-8"));
 
             urlFetchService.fetchAsync(httpRequest);

@@ -25,9 +25,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.b3log.latke.Keys;
 import org.b3log.latke.Latkes;
-import org.b3log.latke.action.AbstractAction;
-import org.b3log.latke.annotation.RequestProcessing;
-import org.b3log.latke.annotation.RequestProcessor;
 import org.b3log.latke.event.Event;
 import org.b3log.latke.event.EventException;
 import org.b3log.latke.event.EventManager;
@@ -38,11 +35,14 @@ import org.b3log.latke.service.LangPropsService;
 import org.b3log.latke.service.ServiceException;
 import org.b3log.latke.servlet.HTTPRequestContext;
 import org.b3log.latke.servlet.HTTPRequestMethod;
+import org.b3log.latke.servlet.annotation.RequestProcessing;
+import org.b3log.latke.servlet.annotation.RequestProcessor;
 import org.b3log.latke.servlet.renderer.freemarker.AbstractFreeMarkerRenderer;
 import org.b3log.latke.util.Strings;
 import org.b3log.solo.SoloServletListener;
 import org.b3log.solo.model.Common;
 import org.b3log.solo.model.Preference;
+import org.b3log.solo.model.Skin;
 import org.b3log.solo.processor.renderer.ConsoleRenderer;
 import org.b3log.solo.processor.util.Filler;
 import org.b3log.solo.service.PreferenceQueryService;
@@ -53,7 +53,7 @@ import org.json.JSONObject;
  * Admin console render processing.
  * 
  * @author <a href="mailto:DL88250@gmail.com">Liang Ding</a>
- * @version 1.0.0.4, May 4, 2012
+ * @version 1.0.0.6, Sep 6, 2012
  * @since 0.4.1
  */
 @RequestProcessor
@@ -123,8 +123,10 @@ public final class AdminConsole {
                           preference.getInt(Preference.ARTICLE_LIST_PAGINATION_WINDOW_SIZE));
             dataModel.put(Preference.LOCALE_STRING, preference.getString(Preference.LOCALE_STRING));
             dataModel.put(Preference.EDITOR_TYPE, preference.getString(Preference.EDITOR_TYPE));
-            
+            dataModel.put(Skin.SKIN_DIR_NAME, preference.getString(Skin.SKIN_DIR_NAME));
+
             Keys.fillServer(dataModel);
+            Keys.fillRuntime(dataModel);
             filler.fillMinified(dataModel);
         } catch (final Exception e) {
             LOGGER.log(Level.SEVERE, "Admin index render failed", e);
@@ -164,8 +166,9 @@ public final class AdminConsole {
         final Map<String, String> langs = langPropsService.getAll(locale);
         final Map<String, Object> dataModel = renderer.getDataModel();
         dataModel.putAll(langs);
-        
+
         Keys.fillServer(dataModel);
+        Keys.fillRuntime(dataModel);
 
         dataModel.put(Preference.LOCALE_STRING, locale.toString());
 
@@ -231,7 +234,7 @@ public final class AdminConsole {
             final ViewLoadEventData data = new ViewLoadEventData();
             data.setViewName(hostTemplateName);
             data.setDataModel(dataModel);
-            eventManager.fireEventSynchronously(new Event<ViewLoadEventData>(AbstractAction.FREEMARKER_ACTION, data));
+            eventManager.fireEventSynchronously(new Event<ViewLoadEventData>(Keys.FREEMARKER_ACTION, data));
             if (Strings.isEmptyOrNull((String) dataModel.get(Plugin.PLUGINS))) {
                 // There is no plugin for this template, fill ${plugins} with blank.
                 dataModel.put(Plugin.PLUGINS, "");

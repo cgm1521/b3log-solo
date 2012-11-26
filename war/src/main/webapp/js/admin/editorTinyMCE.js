@@ -17,7 +17,7 @@
  * @fileoverview tinyMCE editor
  *
  * @author <a href="mailto:LLY219@gmail.com">Liyuan Li</a>
- * @version 1.0.0.5, Jun 19, 2012
+ * @version 1.0.0.6, Sep 26, 2012
  */
 admin.editors.tinyMCE = {
     /*
@@ -41,9 +41,10 @@ admin.editors.tinyMCE = {
                     mode : "exact",
                     elements : conf.id,
                     theme : "advanced",
+                    plugins: "media",
 
                     // Theme options
-                    theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist",
+                    theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist,|,code",
                     theme_advanced_buttons2 : "",
                     theme_advanced_buttons3 : "",
                     theme_advanced_toolbar_location : "top",
@@ -79,8 +80,6 @@ admin.editors.tinyMCE = {
                     relative_urls: false,
                     remove_script_host: false,
                     oninit : function () {
-                        // TODO: chrome bug
-                        window.onhashchange = admin.setCurByHash;
                         if (typeof(conf.fun) === "function") {
                             conf.fun();
                         }

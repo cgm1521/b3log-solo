@@ -1,7 +1,7 @@
 B3log Solo is an open source Java blogging program.
 
-Project home: https://github.com/b3log/b3log-solo
-Request features/Report bugs: https://github.com/b3log/b3log-solo/issues/new
+Project Home: https://github.com/b3log/b3log-solo
+Request Features/Report Bugs: https://github.com/b3log/b3log-solo/issues/new
 
 * QQ Qun: 13139268
 * User Guide: https://github.com/b3log/b3log-solo/wiki/Pre_installation
@@ -19,4 +19,4 @@ Join B3log Team: https://github.com/b3log/b3log-solo/wiki/Join_us
 平等，自由，奔放
 Equality, Freedom, Passion
 
-;-）
+;-)

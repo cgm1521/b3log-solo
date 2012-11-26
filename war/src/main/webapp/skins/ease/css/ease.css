@@ -17,7 +17,7 @@
 * skin ease style
 *
 * @author <a href="mailto:LLY219@gmail.com">Liyuan Li</a>
-* @version 1.0.1.4, Jul 2, 2012
+* @version 1.0.1.8, Aug 6, 2012
 */
 /* start base */
 html, body, div, ul, li {
@@ -26,8 +26,19 @@ html, body, div, ul, li {
 }
 
 body {
-    font-family: Verdana,arial,\5fae\8f6f\96c5\9ed1;
+    font-family: Verdana,arial,'\5fae\8f6f\96c5\9ed1';
     font-size: 12px;
+    background-color: #FCFCFC;
+}
+
+::selection {
+    background-color: #D5D5D5;
+    color: #FCFCFC;
+}
+
+::-moz-selection {
+    background-color: #D5D5D5;
+    color: #FCFCFC;
 }
 
 a {
@@ -97,6 +108,10 @@ sup {
 .ft-gray:hover {
     color: #676767;
     text-decoration: none;
+}
+
+.fn-mgtb10 {
+    margin: 10px 0;
 }
 
 .logo {
@@ -181,7 +196,7 @@ sup {
     cursor: pointer;
     float: right;
     height: 16px;
-    margin: -3px 0 0 15px;;
+    margin: -3px 0 0 15px;
     padding: 1px;
     width: 16px;
 }
@@ -195,19 +210,19 @@ sup {
 
 /* start frame */
 .wrapper {
-    margin: 0 50px;
+    margin: 0 auto;
+    width: 990px;
 }
 
-.body {
-    margin: 0 auto 50px;
-    width: 990px;
+.main {
+    background-color: #FFF;
+    padding-bottom: 50px;
 }
 /* end frame */
 
 /* start header */
 .header {
     width: 100%;
-    background-color: #FCFCFC;
     z-index: 1;
 }
 
@@ -241,8 +256,7 @@ sup {
 }
 
 #search:focus {
-    background-color: #FCFCFC;
-    width: 196px;
+    width: 150px;
 }
 
 .banner {
@@ -304,8 +318,8 @@ sup {
 
 /* start footer */
 .footer {
-    background-color: #FCFCFC;
-    border-top: 2px solid #D5D5D5;
+    border-top: 1px solid #D5D5D5;
+    box-shadow: 0 -1px 1px #D5D5D5;
     font-size: 11px;
     padding: 12px 0;
     -webkit-text-size-adjust: none;
@@ -314,6 +328,7 @@ sup {
 #goTop {
     background: url("/skins/ease/images/icons.png") no-repeat scroll 5px -51px #D5D5D5;
     border-radius: 2px 2px 0 0;
+    box-shadow: 0 0 3px #D5D5D5;
     cursor: pointer;
     font-size: 11px;
     height: 21px;
@@ -325,22 +340,28 @@ sup {
 }
 
 #goTop:hover {
-    background-color: #D5D5D5;
+    background-color: #c8c8c8;
+    box-shadow: 0 0 3px #c8c8c8;
 }
 /* end footer*/
 
 /* start article list */
-.body > ul {
+.wrapper > ul {
     list-style: none;
+}
+
+.main > .wrapper > h2 {
+    margin: 0;
+    padding: 14px 0;
 }
 
 .article {
     border-bottom: 1px solid #f6f6f6;
-    padding: 20px 70px 20px;
+    padding: 30px 50px;
 }
 
 .article:hover {
-    border-bottom-color: #D5D5D5;
+    border-bottom-color: #ddd;
     box-shadow: 0 0 1px #f6f6f6 inset;
     background-color: #FCFCFC;
 }
@@ -349,6 +370,8 @@ sup {
     line-height: 145%;
     overflow: hidden;
     word-wrap: break-word;
+    margin-bottom: 10px;
+    font-size: 14px;
 }
 
 .article-body ol, .article-body ul {
@@ -380,6 +403,10 @@ sup {
     cursor: pointer;
 }
 
+.article-last:hover {
+    border-bottom: 1px solid #f6f6f6;
+}
+
 .article-next {
     background-color: #FCFCFC;
     box-shadow: 0 0 3px #D5D5D5 inset;
@@ -399,9 +426,9 @@ sup {
     background-color: #FCFCFC;
     box-shadow: 0 0 2px #D5D5D5;
     float: left;
-    margin: 20px 0;
+    margin: 10px 0;
     padding: 0 20px 10px;
-    width: 365px;
+    width: 385px;
 }
 
 .article-relative:hover {
@@ -418,14 +445,14 @@ sup {
 }
 
 #externalRelevantArticles {
-    width: 297px;
+    width: 357px;
     margin-top: 0;
 }
 /* end article*/
 
 /* start comment */
 #comments {
-    padding: 20px 70px 20px;
+    padding: 20px 50px;
     position: relative;
 }
 
@@ -441,17 +468,17 @@ sup {
 .comment-panel {
     float: left;
     line-height: 16px;
-    margin: 0 10px 20px;
+    margin: 0 0 20px 10px;
     min-height: 64px;
     overflow: hidden;
-    width: 760px;
+    width: 814px;
 }
 
 .comment-body-ref {
     background-color: #FCFCFC;
     box-shadow: 0 0 2px #D5D5D5;
     display: block;
-    left: 140px;
+    left: 127px;
     padding: 10px;
     opacity: 0.9;
     filter: alpha(opacity=90);
@@ -469,11 +496,22 @@ sup {
 .comment-body-ref > .comment-panel { 
     margin: 0 20px 0 0;
     min-height: 48px;
-    width: 756px;
+    width: 725px;
+}
+
+.comment-body-ref > .comment-panel > .right {
+    display: none;
+}
+
+#replyForm {
+    margin-left: 25px;
 }
 
 .form {
-    padding: 0 70px 20px;
+    padding: 0 50px 20px;
+}
+
+.wrapper > .form {
     float: left;
 }
 
@@ -517,7 +555,7 @@ sup {
     height: 28px;
     line-height: 28px;
     padding: 0 12px;
-    color: #A7A7A7;
+    color: #808080;
 }
 
 .form button:hover {
@@ -535,6 +573,11 @@ sup {
 /* end comment */
 
 /* start tags */
+#tags.other-main {
+    margin: 47px 44px 0;
+    width: 902px;
+}
+
 #tags li {
     float: left;
     height: 38px;
@@ -591,7 +634,7 @@ sup {
     padding-bottom: 20px;
     line-height: 20px;
     margin: 20px;
-    width: 276px;
+    width: 270px;
     position: absolute;
     top: 0;
 }
@@ -606,7 +649,7 @@ sup {
 
 .archives a {
     display: block;
-    margin-left: 80px;
+    margin-left: 77px;
 }
 /* end archives */
 
@@ -626,7 +669,7 @@ sup {
     line-height: 20px;
     margin: 20px;
     padding: 10px 20px 20px;
-    width: 393px;
+    width: 385px;
 }
 
 .dynamic .module:hover {
@@ -642,27 +685,37 @@ sup {
 }
 
 .dynamic .side-tags {
-    width: 186px;
+    width: 170px;
 }
 
 .dynamic .side-tags li {
     float: left;
     margin: 0 5px;
 }
+
+.dynamic .side-most-comment, 
+.dynamic .side-most-view {
+    margin-bottom: 0;
+}
 /* end dynamic */
 
 /* start links */
+.other-main.links {
+    margin-top: 45px;
+}
+
 .links li {
     float: left;
-    margin: 0 20px 10px;
-    width: 273px;
+    line-height: 22px;
+    margin: 0 20px;
+    width: 270px;
 }
 /* end links */
 
 /* start not list */
 .other-main {
     display: inline-block;
-    margin: 50px 20px 0;
-    width: 950px;
+    margin: 30px 30px 0;
+    width: 930px;
 }
 /* end not list */

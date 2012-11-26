@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.b3log.latke.repository.RepositoryException;
 import org.b3log.latke.util.Requests;
 import org.b3log.solo.model.Statistic;
@@ -38,7 +39,7 @@ import org.json.JSONObject;
  * </p>
  *
  * @author <a href="mailto:DL88250@gmail.com">Liang Ding</a>
- * @version 1.0.1.9, May 16, 2012
+ * @version 1.0.2.0, Jul 16, 2012
  * @since 0.3.1
  */
 public final class Statistics {
@@ -84,7 +85,7 @@ public final class Statistics {
      */
     public static void onlineVisitorCount(final HttpServletRequest request) {
         ONLINE_VISITORS.put(request.getRemoteAddr(), System.currentTimeMillis());
-        LOGGER.log(Level.INFO, "Current online visitor count [{0}]", ONLINE_VISITORS.size());
+        LOGGER.log(Level.FINER, "Current online visitor count [{0}]", ONLINE_VISITORS.size());
     }
 
     /**
@@ -103,7 +104,7 @@ public final class Statistics {
             }
         }
 
-        LOGGER.log(Level.INFO, "Current online visitor count [{0}]", ONLINE_VISITORS.size());
+        LOGGER.log(Level.FINER, "Current online visitor count [{0}]", ONLINE_VISITORS.size());
     }
 
     /**
@@ -216,17 +217,21 @@ public final class Statistics {
      * </p>
      * 
      * @param request the specified request
+     * @param response the specified response
      * @throws RepositoryException repository exception
      * @throws JSONException json exception 
      * @see Requests#searchEngineBotRequest(javax.servlet.http.HttpServletRequest) 
      */
-    public void incBlogViewCount(final HttpServletRequest request) throws RepositoryException, JSONException {
+    public void incBlogViewCount(final HttpServletRequest request, final HttpServletResponse response)
+            throws RepositoryException, JSONException {
         if (Requests.searchEngineBotRequest(request)) {
-            LOGGER.log(Level.FINER, "Request made from a search engine[User-Agent={0}], bypasses blog view count",
-                       request.getHeader("User-Agent"));
             return;
         }
 
+        if (Requests.hasBeenServed(request, response)) {
+            return;
+        }
+        
         final JSONObject statistic = statisticRepository.get(Statistic.STATISTIC);
         if (null == statistic) {
             return;

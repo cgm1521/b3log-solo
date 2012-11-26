@@ -25,15 +25,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.b3log.latke.Keys;
-import org.b3log.latke.annotation.RequestProcessing;
-import org.b3log.latke.annotation.RequestProcessor;
 import org.b3log.latke.model.User;
+import org.b3log.latke.repository.CompositeFilter;
+import org.b3log.latke.repository.CompositeFilterOperator;
+import org.b3log.latke.repository.Filter;
 import org.b3log.latke.repository.FilterOperator;
 import org.b3log.latke.repository.PropertyFilter;
 import org.b3log.latke.repository.Query;
 import org.b3log.latke.repository.SortDirection;
 import org.b3log.latke.servlet.HTTPRequestContext;
 import org.b3log.latke.servlet.HTTPRequestMethod;
+import org.b3log.latke.servlet.annotation.RequestProcessing;
+import org.b3log.latke.servlet.annotation.RequestProcessor;
 import org.b3log.latke.servlet.renderer.AtomRenderer;
 import org.b3log.latke.servlet.renderer.RssRenderer;
 import org.b3log.latke.util.Locales;
@@ -64,7 +67,7 @@ import org.json.JSONObject;
  * Feed (Atom/RSS) processor.
  *
  * @author <a href="mailto:DL88250@gmail.com">Liang Ding</a>
- * @version 1.1.0.0, May 10, 2012
+ * @version 1.1.0.2, Nov 15, 2012
  * @since 0.3.1
  */
 @RequestProcessor
@@ -124,9 +127,12 @@ public final class FeedProcessor {
             feed.setLink("http://" + blogHost + "/blog-articles-feed.do");
             feed.setId("http://" + blogHost + "/");
 
+            final List<Filter> filters = new ArrayList<Filter>();
+            filters.add(new PropertyFilter(Article.ARTICLE_IS_PUBLISHED, FilterOperator.EQUAL, true));
+            filters.add(new PropertyFilter(Article.ARTICLE_VIEW_PWD, FilterOperator.EQUAL, ""));
             final Query query = new Query().setCurrentPageNum(1).
                     setPageSize(ENTRY_OUTPUT_CNT).
-                    setFilter(new PropertyFilter(Article.ARTICLE_IS_PUBLISHED, FilterOperator.EQUAL, true)).
+                    setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
                     addSort(Article.ARTICLE_UPDATE_DATE, SortDirection.DESCENDING).
                     setPageCount(1);
 
@@ -149,7 +155,7 @@ public final class FeedProcessor {
                 final String title = StringEscapeUtils.escapeXml(article.getString(Article.ARTICLE_TITLE));
                 entry.setTitle(title);
                 final String summary = isFullContent ? StringEscapeUtils.escapeXml(article.getString(Article.ARTICLE_CONTENT))
-                                       : StringEscapeUtils.escapeXml(article.optString(Article.ARTICLE_ABSTRACT));
+                        : StringEscapeUtils.escapeXml(article.optString(Article.ARTICLE_ABSTRACT));
                 entry.setSummary(summary);
                 final Date updated = (Date) article.get(Article.ARTICLE_UPDATE_DATE);
                 entry.setUpdated(updated);
@@ -212,7 +218,13 @@ public final class FeedProcessor {
 
         final Feed feed = new Feed();
         try {
-            final String tagTitle = tagRepository.get(tagId).getString(Tag.TAG_TITLE);
+            final JSONObject tag = tagRepository.get(tagId);
+            if (null == tag) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
+            final String tagTitle = tag.getString(Tag.TAG_TITLE);
 
             final JSONObject preference = preferenceQueryService.getPreference();
             if (null == preference) {
@@ -243,7 +255,8 @@ public final class FeedProcessor {
                 final JSONObject tagArticleRelation = tagArticleRelations.getJSONObject(i);
                 final String articleId = tagArticleRelation.getString(Article.ARTICLE + "_" + Keys.OBJECT_ID);
                 final JSONObject article = articleRepository.get(articleId);
-                if (article.getBoolean(Article.ARTICLE_IS_PUBLISHED)) {  // Skips the unpublished article
+                if (article.getBoolean(Article.ARTICLE_IS_PUBLISHED) // Skips the unpublished article
+                        && Strings.isEmptyOrNull(article.optString(Article.ARTICLE_VIEW_PWD))) {   // Skips article with password
                     articles.add(article);
                 }
             }
@@ -264,7 +277,7 @@ public final class FeedProcessor {
                 final String title = StringEscapeUtils.escapeXml(article.getString(Article.ARTICLE_TITLE));
                 entry.setTitle(title);
                 final String summary = isFullContent ? StringEscapeUtils.escapeXml(article.getString(Article.ARTICLE_CONTENT))
-                                       : StringEscapeUtils.escapeXml(article.optString(Article.ARTICLE_ABSTRACT));
+                        : StringEscapeUtils.escapeXml(article.optString(Article.ARTICLE_ABSTRACT));
                 entry.setSummary(summary);
                 final Date updated = (Date) article.get(Article.ARTICLE_UPDATE_DATE);
                 entry.setUpdated(updated);
@@ -283,8 +296,7 @@ public final class FeedProcessor {
                 for (int j = 0; j < tagStrings.length; j++) {
                     final Category catetory = new Category();
                     entry.addCatetory(catetory);
-                    final String tag = tagStrings[j];
-                    catetory.setTerm(tag);
+                    catetory.setTerm(tagStrings[j]);
                 }
             }
 
@@ -334,9 +346,12 @@ public final class FeedProcessor {
             channel.setLanguage(language + '-' + country);
             channel.setDescription(blogSubtitle);
 
+            final List<Filter> filters = new ArrayList<Filter>();
+            filters.add(new PropertyFilter(Article.ARTICLE_IS_PUBLISHED, FilterOperator.EQUAL, true));
+            filters.add(new PropertyFilter(Article.ARTICLE_VIEW_PWD, FilterOperator.EQUAL, ""));
             final Query query = new Query().setCurrentPageNum(1).
                     setPageSize(ENTRY_OUTPUT_CNT).
-                    setFilter(new PropertyFilter(Article.ARTICLE_IS_PUBLISHED, FilterOperator.EQUAL, true)).
+                    setFilter(new CompositeFilter(CompositeFilterOperator.AND, filters)).
                     addSort(Article.ARTICLE_UPDATE_DATE, SortDirection.DESCENDING).
                     setPageCount(1);
 
@@ -359,7 +374,7 @@ public final class FeedProcessor {
                 final String title = StringEscapeUtils.escapeXml(article.getString(Article.ARTICLE_TITLE));
                 item.setTitle(title);
                 final String description = isFullContent ? StringEscapeUtils.escapeXml(article.getString(Article.ARTICLE_CONTENT))
-                                           : StringEscapeUtils.escapeXml(article.optString(Article.ARTICLE_ABSTRACT));
+                        : StringEscapeUtils.escapeXml(article.optString(Article.ARTICLE_ABSTRACT));
                 item.setDescription(description);
                 final Date pubDate = (Date) article.get(Article.ARTICLE_UPDATE_DATE);
                 item.setPubDate(pubDate);
@@ -421,7 +436,13 @@ public final class FeedProcessor {
 
         final Channel channel = new Channel();
         try {
-            final String tagTitle = tagRepository.get(tagId).getString(Tag.TAG_TITLE);
+            final JSONObject tag = tagRepository.get(tagId);
+            if (null == tag) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return;
+            }
+
+            final String tagTitle = tag.getString(Tag.TAG_TITLE);
 
             final JSONObject preference = preferenceQueryService.getPreference();
             if (null == preference) {
@@ -456,7 +477,8 @@ public final class FeedProcessor {
                 final JSONObject tagArticleRelation = tagArticleRelations.getJSONObject(i);
                 final String articleId = tagArticleRelation.getString(Article.ARTICLE + "_" + Keys.OBJECT_ID);
                 final JSONObject article = articleRepository.get(articleId);
-                if (article.getBoolean(Article.ARTICLE_IS_PUBLISHED)) {  // Skips the unpublished article
+                if (article.getBoolean(Article.ARTICLE_IS_PUBLISHED) // Skips the unpublished article
+                        && Strings.isEmptyOrNull(article.optString(Article.ARTICLE_VIEW_PWD))) {   // Skips article with password
                     articles.add(article);
                 }
             }
@@ -477,7 +499,7 @@ public final class FeedProcessor {
                 final String title = StringEscapeUtils.escapeXml(article.getString(Article.ARTICLE_TITLE));
                 item.setTitle(title);
                 final String description = isFullContent ? StringEscapeUtils.escapeXml(article.getString(Article.ARTICLE_CONTENT))
-                                           : StringEscapeUtils.escapeXml(article.optString(Article.ARTICLE_ABSTRACT));
+                        : StringEscapeUtils.escapeXml(article.optString(Article.ARTICLE_ABSTRACT));
                 item.setDescription(description);
                 final Date pubDate = (Date) article.get(Article.ARTICLE_UPDATE_DATE);
                 item.setPubDate(pubDate);
@@ -497,8 +519,7 @@ public final class FeedProcessor {
                 for (int j = 0; j < tagStrings.length; j++) {
                     final org.b3log.solo.model.feed.rss.Category catetory = new org.b3log.solo.model.feed.rss.Category();
                     item.addCatetory(catetory);
-                    final String tag = tagStrings[j];
-                    catetory.setTerm(tag);
+                    catetory.setTerm(tagStrings[j]);
                 }
             }
 

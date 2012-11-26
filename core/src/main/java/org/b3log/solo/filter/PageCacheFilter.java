@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.b3log.latke.Keys;
 import org.b3log.latke.Latkes;
-import org.b3log.latke.action.AbstractCacheablePageAction;
 import org.b3log.latke.cache.PageCaches;
 import org.b3log.latke.repository.RepositoryException;
 import org.b3log.latke.service.LangPropsService;
@@ -52,7 +51,7 @@ import org.json.JSONObject;
  * Page cache filter.
  *
  * @author <a href="mailto:DL88250@gmail.com">Liang Ding</a>
- * @version 1.0.0.9, Mar 31, 2012
+ * @version 1.0.1.0, Jul 16, 2012
  * @since 0.3.1
  */
 public final class PageCacheFilter implements Filter {
@@ -132,7 +131,7 @@ public final class PageCacheFilter implements Filter {
             request.setAttribute(Keys.PAGE_CACHE_KEY, pageCacheKey);
         }
 
-        final JSONObject cachedPageContentObject = PageCaches.get(pageCacheKey, httpServletRequest);
+        final JSONObject cachedPageContentObject = PageCaches.get(pageCacheKey, httpServletRequest, (HttpServletResponse) response);
 
         if (null == cachedPageContentObject) {
             LOGGER.log(Level.FINER, "Page cache miss for request URI[{0}]", requestURI);
@@ -141,18 +140,18 @@ public final class PageCacheFilter implements Filter {
             return;
         }
 
-        final String cachedType = cachedPageContentObject.optString(AbstractCacheablePageAction.CACHED_TYPE);
+        final String cachedType = cachedPageContentObject.optString(PageCaches.CACHED_TYPE);
 
         try {
             // If cached an article that has view password, dispatches the password form
-            if (langPropsService.get(PageTypes.ARTICLE).equals(cachedType)
-                && cachedPageContentObject.has(AbstractCacheablePageAction.CACHED_PWD)) {
+            if (langPropsService.get(PageTypes.ARTICLE.getLangeLabel()).equals(cachedType)
+                && cachedPageContentObject.has(PageCaches.CACHED_PWD)) {
                 JSONObject article = new JSONObject();
 
-                final String articleId = cachedPageContentObject.optString(AbstractCacheablePageAction.CACHED_OID);
+                final String articleId = cachedPageContentObject.optString(PageCaches.CACHED_OID);
 
                 article.put(Keys.OBJECT_ID, articleId);
-                article.put(Article.ARTICLE_VIEW_PWD, cachedPageContentObject.optString(AbstractCacheablePageAction.CACHED_PWD));
+                article.put(Article.ARTICLE_VIEW_PWD, cachedPageContentObject.optString(PageCaches.CACHED_PWD));
 
                 if (articles.needViewPwd(httpServletRequest, article)) {
                     article = articleRepository.get(articleId); // Loads the article entity
@@ -178,16 +177,16 @@ public final class PageCacheFilter implements Filter {
             response.setContentType("text/html");
             response.setCharacterEncoding("UTF-8");
             final PrintWriter writer = response.getWriter();
-            String cachedPageContent = cachedPageContentObject.getString(AbstractCacheablePageAction.CACHED_CONTENT);
+            String cachedPageContent = cachedPageContentObject.getString(PageCaches.CACHED_CONTENT);
             final String topBarHTML = TopBars.getTopBarHTML((HttpServletRequest) request, (HttpServletResponse) response);
             cachedPageContent = cachedPageContent.replace(Common.TOP_BAR_REPLACEMENT_FLAG, topBarHTML);
 
 
-            final String cachedTitle = cachedPageContentObject.getString(AbstractCacheablePageAction.CACHED_TITLE);
+            final String cachedTitle = cachedPageContentObject.getString(PageCaches.CACHED_TITLE);
             LOGGER.log(Level.FINEST, "Cached value[key={0}, type={1}, title={2}]",
                        new Object[]{pageCacheKey, cachedType, cachedTitle});
 
-            statistics.incBlogViewCount((HttpServletRequest) request);
+            statistics.incBlogViewCount((HttpServletRequest) request, (HttpServletResponse) response);
 
             final long endimeMillis = System.currentTimeMillis();
             final String dateString = DateFormatUtils.format(endimeMillis, "yyyy/MM/dd HH:mm:ss");

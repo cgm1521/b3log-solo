@@ -25,16 +25,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.b3log.latke.Keys;
 import org.b3log.latke.Latkes;
-import org.b3log.latke.action.AbstractAction;
-import org.b3log.latke.annotation.RequestProcessing;
-import org.b3log.latke.annotation.RequestProcessor;
 import org.b3log.latke.model.User;
 import org.b3log.latke.service.LangPropsService;
-import org.b3log.latke.servlet.renderer.freemarker.AbstractFreeMarkerRenderer;
 import org.b3log.latke.servlet.HTTPRequestContext;
 import org.b3log.latke.servlet.HTTPRequestMethod;
+import org.b3log.latke.servlet.annotation.RequestProcessing;
+import org.b3log.latke.servlet.annotation.RequestProcessor;
 import org.b3log.latke.servlet.renderer.JSONRenderer;
+import org.b3log.latke.servlet.renderer.freemarker.AbstractFreeMarkerRenderer;
 import org.b3log.latke.util.MD5;
+import org.b3log.latke.util.Requests;
 import org.b3log.latke.util.Sessions;
 import org.b3log.latke.util.Strings;
 import org.b3log.solo.SoloServletListener;
@@ -42,9 +42,8 @@ import org.b3log.solo.model.Common;
 import org.b3log.solo.model.Preference;
 import org.b3log.solo.processor.renderer.ConsoleRenderer;
 import org.b3log.solo.processor.util.Filler;
-import org.b3log.solo.repository.UserRepository;
-import org.b3log.solo.repository.impl.UserRepositoryImpl;
 import org.b3log.solo.service.PreferenceQueryService;
+import org.b3log.solo.service.UserQueryService;
 import org.json.JSONObject;
 
 /**
@@ -54,7 +53,7 @@ import org.json.JSONObject;
  *
  * @author <a href="mailto:DL88250@gmail.com">Liang Ding</a>
  * @author <a href="mailto:LLY219@gmail.com">Liyuan Li</a>
- * @version 1.1.0.8, Mar 4, 2012
+ * @version 1.1.1.1, Sep 6, 2012
  * @since 0.3.1
  */
 @RequestProcessor
@@ -65,9 +64,9 @@ public final class LoginProcessor {
      */
     private static final Logger LOGGER = Logger.getLogger(LoginProcessor.class.getName());
     /**
-     * User repository.
+     * User query service.
      */
-    private static UserRepository userRepository = UserRepositoryImpl.getInstance();
+    private static UserQueryService userQueryService = UserQueryService.getInstance();
     /**
      * Language service.
      */
@@ -112,6 +111,7 @@ public final class LoginProcessor {
         dataModel.put(Preference.BLOG_HOST, preference.getString(Preference.BLOG_HOST));
 
         Keys.fillServer(dataModel);
+        Keys.fillRuntime(dataModel);
         filler.fillMinified(dataModel);
     }
 
@@ -144,7 +144,7 @@ public final class LoginProcessor {
             final String loginFailLabel = langPropsService.get("loginFailLabel");
             jsonObject.put(Keys.MSG, loginFailLabel);
 
-            final JSONObject requestJSONObject = AbstractAction.parseRequestJSONObject(request, context.getResponse());
+            final JSONObject requestJSONObject = Requests.parseRequestJSONObject(request, context.getResponse());
             final String userEmail = requestJSONObject.getString(User.USER_EMAIL);
             final String userPwd = requestJSONObject.getString(User.USER_PASSWORD);
 
@@ -154,9 +154,9 @@ public final class LoginProcessor {
 
             LOGGER.log(Level.INFO, "Login[email={0}]", userEmail);
 
-            final JSONObject user = userRepository.getByEmail(userEmail);
+            final JSONObject user = userQueryService.getUserByEmail(userEmail);
             if (null == user) {
-                LOGGER.log(Level.WARNING, "Not found user[email={0}", userEmail);
+                LOGGER.log(Level.WARNING, "Not found user[email={0}]", userEmail);
                 return;
             }
 
@@ -225,7 +225,7 @@ public final class LoginProcessor {
                     break;
                 }
 
-                final JSONObject user = userRepository.getByEmail(userEmail.toLowerCase().trim());
+                final JSONObject user = userQueryService.getUserByEmail(userEmail.toLowerCase().trim());
                 if (null == user) {
                     break;
                 }
