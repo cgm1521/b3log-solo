@@ -1,0 +1,1 @@
+b3log-solo/src/main/webapp/WEB-INF/classes

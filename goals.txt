@@ -1,0 +1,24 @@
+
+Goal	Description
+tomcat:deploy	Deploy a WAR to Tomcat.
+tomcat:deploy-only	Deploy a WAR to Tomcat witjout forking the package lifecycle
+tomcat:exploded	Deploy an exploded WAR to Tomcat.
+tomcat:help	Display help information on tomcat-maven-plugin.
+mvn tomcat:help -Ddetail=true -Dgoal=<goal-name>
+to display parameter details.
+tomcat:info	Lists information about the Tomcat version, OS, and JVM properties.
+tomcat:inplace	Deploy a WAR in-place to Tomcat.
+tomcat:list	Lists all the currently deployed web applications in Tomcat.
+tomcat:redeploy	Redeploy a WAR in Tomcat. Deploy with forcing update flag to true
+tomcat:reload	Reload a WAR in Tomcat.
+tomcat:resources	Lists JNDI resources in Tomcat.
+tomcat:roles	Lists security roles in Tomcat.
+tomcat:run	Runs the current project as a dynamic web application using an embedded Tomcat server.
+tomcat:run-war	Runs the current project as a packaged web application using an embedded Tomcat server.
+tomcat:run-war-only	Runs the current project as a packaged web application using an embedded Tomcat server without forking the package cycle.
+tomcat:sessions	Lists session information for a WAR in Tomcat.
+tomcat:shutdown	Shuts down all possibly started embedded tomcat servers. This will be automatically down through a shutdown hook or you may call this Mojo to shut them down explictly.
+	By default the shutdown goal is not bound to any phase. For integration tests you might want to bind it to post-integration-test.
+tomcat:start	Start a WAR in Tomcat.
+tomcat:stop	Stop a WAR in Tomcat.
+tomcat:undeploy	Undeploy a WAR from Tomcat.
