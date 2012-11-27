@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
     Description: B3log Solo (MySQL) standard Servlet container POM.
-    Version: 1.0.1.1, Nov 21, 2012
+    Version: 1.0.1.0, Sep 5, 2012
     Author: Liang Ding
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -19,13 +19,12 @@
     <parent>
         <groupId>org.b3log</groupId>
         <artifactId>solo-war</artifactId>
-        <version>0.5.5</version>
+        <version>0.5.0</version>
     </parent>
     
     <properties>
         <!-- JDBC Drivers -->
         <mysql-connector-java.version>5.1.18</mysql-connector-java.version>
-        <netbeans.hint.deploy.server>Tomcat</netbeans.hint.deploy.server>
     </properties>
 
     <dependencies>
@@ -64,6 +63,17 @@
         </resources>
         
         <plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>tomcat-maven-plugin</artifactId>
+				<configuration>
+					<path>/blog</path>
+					<url>http://localhost:8080/manager</url> 
+               		<username>tomcat</username>   
+                	<password>tomcat</password>
+				</configuration>
+			</plugin>
+        
             <plugin>
                 <groupId>com.mycila.maven-license-plugin</groupId>
                 <artifactId>maven-license-plugin</artifactId>
@@ -94,10 +104,9 @@
                     </execution>
                 </executions>
             </plugin>
-            
         </plugins>
         
-        <finalName>b3log-solo-mysql</finalName>
+        <finalName>blog</finalName>
     </build>
 </project>
 
